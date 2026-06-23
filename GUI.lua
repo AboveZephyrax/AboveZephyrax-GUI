@@ -204,18 +204,52 @@ function SimpleGUI:CreateWindow(config)
     WelcomeSection.Visible = true
     WelcomeSection.Parent = ContentArea
 
-    local WelcomeLabel = Instance.new("TextLabel")
-    WelcomeLabel.Size = UDim2.new(1, -20, 1, -20)
-    WelcomeLabel.Position = UDim2.new(0, 10, 0, 10)
-    WelcomeLabel.BackgroundTransparency = 1
-    WelcomeLabel.Text = config.WelcomeText or "INFO DESC"
-    WelcomeLabel.TextColor3 = Color3.fromRGB(220, 220, 220)
-    WelcomeLabel.Font = Enum.Font.GothamBold
-    WelcomeLabel.TextSize = 18
-    WelcomeLabel.TextXAlignment = Enum.TextXAlignment.Left
-    WelcomeLabel.TextYAlignment = Enum.TextYAlignment.Top
-    WelcomeLabel.TextWrapped = true
-    WelcomeLabel.Parent = WelcomeSection
+    local WelcomeLayout = Instance.new("UIListLayout")
+    WelcomeLayout.Padding = UDim.new(0, 6)
+    WelcomeLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    WelcomeLayout.Parent = WelcomeSection
+
+    local WelcomePad = Instance.new("UIPadding")
+    WelcomePad.PaddingTop = UDim.new(0, 10)
+    WelcomePad.PaddingLeft = UDim.new(0, 10)
+    WelcomePad.PaddingRight = UDim.new(0, 10)
+    WelcomePad.Parent = WelcomeSection
+
+    local WelcomeTitle = Instance.new("TextLabel")
+    WelcomeTitle.Size = UDim2.new(1, 0, 0, 24)
+    WelcomeTitle.BackgroundTransparency = 1
+    WelcomeTitle.Text = "Welcome, " .. LocalPlayer.Name
+    WelcomeTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+    WelcomeTitle.Font = Enum.Font.GothamBold
+    WelcomeTitle.TextSize = 18
+    WelcomeTitle.TextXAlignment = Enum.TextXAlignment.Left
+    WelcomeTitle.LayoutOrder = 0
+    WelcomeTitle.Parent = WelcomeSection
+
+    local placeName = "Unknown"
+    pcall(function()
+        placeName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
+    end)
+
+    local infoLines = {
+        "Game: " .. placeName,
+        "Players Online: " .. tostring(#Players:GetPlayers()),
+        "Account Age: " .. tostring(LocalPlayer.AccountAge) .. " days",
+        "Press " .. (config.Keybind and config.Keybind.Name or "RightControl") .. " to toggle GUI"
+    }
+
+    for i, line in ipairs(infoLines) do
+        local InfoLabel = Instance.new("TextLabel")
+        InfoLabel.Size = UDim2.new(1, 0, 0, 18)
+        InfoLabel.BackgroundTransparency = 1
+        InfoLabel.Text = line
+        InfoLabel.TextColor3 = Color3.fromRGB(180, 180, 190)
+        InfoLabel.Font = Enum.Font.Gotham
+        InfoLabel.TextSize = 13
+        InfoLabel.TextXAlignment = Enum.TextXAlignment.Left
+        InfoLabel.LayoutOrder = i
+        InfoLabel.Parent = WelcomeSection
+    end
 
     self.WelcomeSection = WelcomeSection
     self.ScreenGui = ScreenGui
