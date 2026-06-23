@@ -149,22 +149,25 @@ function SimpleGUI:CreateWindow(config)
         end
     end)
 
-    local TabBar = Instance.new("Frame")
-    TabBar.Size = UDim2.new(1, -10, 0, 28)
-    TabBar.Position = UDim2.new(0, 5, 0, 5)
-    TabBar.BackgroundTransparency = 1
-    TabBar.Parent = Body
+    local MainScroll = Instance.new("ScrollingFrame")
+    MainScroll.Size = UDim2.new(1, -10, 1, -10)
+    MainScroll.Position = UDim2.new(0, 5, 0, 5)
+    MainScroll.BackgroundTransparency = 1
+    MainScroll.BorderSizePixel = 0
+    MainScroll.ScrollBarThickness = 4
+    MainScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+    MainScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    MainScroll.Parent = Body
 
-    local TabBarLayout = Instance.new("UIListLayout")
-    TabBarLayout.FillDirection = Enum.FillDirection.Horizontal
-    TabBarLayout.Padding = UDim.new(0, 4)
-    TabBarLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    TabBarLayout.Parent = TabBar
+    local MainLayout = Instance.new("UIListLayout")
+    MainLayout.Padding = UDim.new(0, 8)
+    MainLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    MainLayout.Parent = MainScroll
 
     self.ScreenGui = ScreenGui
     self.Main = Main
     self.Body = Body
-    self.TabBar = TabBar
+    self.MainScroll = MainScroll
     self.Tabs = {}
 
     return self
@@ -173,62 +176,76 @@ end
 function Window:CreateTab(name)
     local tab = setmetatable({}, Tab)
 
-    local TabBtn = Instance.new("TextButton")
-    TabBtn.Size = UDim2.new(0, 74, 1, 0)
-    TabBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-    TabBtn.Text = name
-    TabBtn.TextColor3 = Color3.fromRGB(220, 220, 220)
-    TabBtn.Font = Enum.Font.Gotham
-    TabBtn.TextSize = 12
-    TabBtn.AutoButtonColor = false
-    TabBtn.LayoutOrder = #self.Tabs
-    TabBtn.Parent = self.TabBar
+    local Section = Instance.new("Frame")
+    Section.Size = UDim2.new(1, 0, 0, 0)
+    Section.AutomaticSize = Enum.AutomaticSize.Y
+    Section.BackgroundTransparency = 1
+    Section.LayoutOrder = #self.Tabs
+    Section.Parent = self.MainScroll
 
-    local TabBtnCorner = Instance.new("UICorner")
-    TabBtnCorner.CornerRadius = UDim.new(0, 6)
-    TabBtnCorner.Parent = TabBtn
+    local SectionLayout = Instance.new("UIListLayout")
+    SectionLayout.Padding = UDim.new(0, 6)
+    SectionLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    SectionLayout.Parent = Section
 
-    local Container = Instance.new("ScrollingFrame")
-    Container.Size = UDim2.new(1, -10, 1, -38)
-    Container.Position = UDim2.new(0, 5, 0, 38)
-    Container.BackgroundTransparency = 1
-    Container.BorderSizePixel = 0
-    Container.ScrollBarThickness = 4
-    Container.CanvasSize = UDim2.new(0, 0, 0, 0)
-    Container.AutomaticCanvasSize = Enum.AutomaticSize.Y
-    Container.Visible = (#self.Tabs == 0)
-    Container.Parent = self.Body
+    local Header = Instance.new("TextButton")
+    Header.Size = UDim2.new(1, 0, 0, 30)
+    Header.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+    Header.Text = ""
+    Header.AutoButtonColor = false
+    Header.LayoutOrder = 0
+    Header.Parent = Section
 
-    local Layout = Instance.new("UIListLayout")
-    Layout.Padding = UDim.new(0, 6)
-    Layout.SortOrder = Enum.SortOrder.LayoutOrder
-    Layout.Parent = Container
+    local HeaderCorner = Instance.new("UICorner")
+    HeaderCorner.CornerRadius = UDim.new(0, 6)
+    HeaderCorner.Parent = Header
 
-    tab.Container = Container
-    tab.Button = TabBtn
+    local HeaderLabel = Instance.new("TextLabel")
+    HeaderLabel.Size = UDim2.new(1, -30, 1, 0)
+    HeaderLabel.Position = UDim2.new(0, 10, 0, 0)
+    HeaderLabel.BackgroundTransparency = 1
+    HeaderLabel.Text = name
+    HeaderLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    HeaderLabel.Font = Enum.Font.GothamBold
+    HeaderLabel.TextSize = 13
+    HeaderLabel.TextXAlignment = Enum.TextXAlignment.Left
+    HeaderLabel.Parent = Header
+
+    local Arrow = Instance.new("TextLabel")
+    Arrow.Size = UDim2.new(0, 20, 1, 0)
+    Arrow.Position = UDim2.new(1, -24, 0, 0)
+    Arrow.BackgroundTransparency = 1
+    Arrow.Text = "-"
+    Arrow.TextColor3 = Color3.fromRGB(220, 220, 220)
+    Arrow.Font = Enum.Font.GothamBold
+    Arrow.TextSize = 14
+    Arrow.Parent = Header
+
+    local ContentHolder = Instance.new("Frame")
+    ContentHolder.Size = UDim2.new(1, 0, 0, 0)
+    ContentHolder.AutomaticSize = Enum.AutomaticSize.Y
+    ContentHolder.BackgroundTransparency = 1
+    ContentHolder.LayoutOrder = 1
+    ContentHolder.Parent = Section
+
+    local ContentLayout = Instance.new("UIListLayout")
+    ContentLayout.Padding = UDim.new(0, 6)
+    ContentLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    ContentLayout.Parent = ContentHolder
+
+    local expanded = true
+    Header.MouseButton1Click:Connect(function()
+        expanded = not expanded
+        ContentHolder.Visible = expanded
+        Arrow.Text = expanded and "-" or "+"
+    end)
+
+    tab.Section = Section
+    tab.Header = Header
+    tab.Container = ContentHolder
     tab.Window = self
 
     table.insert(self.Tabs, tab)
-
-    local function refreshTabColors()
-        for _, t in ipairs(self.Tabs) do
-            if t.Container.Visible then
-                t.Button.BackgroundColor3 = Color3.fromRGB(75, 90, 130)
-            else
-                t.Button.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-            end
-        end
-    end
-
-    TabBtn.MouseButton1Click:Connect(function()
-        for _, t in ipairs(self.Tabs) do
-            t.Container.Visible = false
-        end
-        Container.Visible = true
-        refreshTabColors()
-    end)
-
-    refreshTabColors()
 
     return tab
 end
