@@ -249,10 +249,24 @@ function SimpleGUI:CreateWindow(config)
     HeaderRow.LayoutOrder = 0
     HeaderRow.Parent = WelcomeCard
 
-    local SimpleGUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/AboveZephyrax/AboveZephyrax-GUI/main/GUI.lua"))()
-print("TYPE:", typeof(SimpleGUI))
-local Window = SimpleGUI:CreateWindow({Name = "Test"})
-print("WINDOW:", typeof(Window))
+    local Avatar = Instance.new("ImageLabel")
+    Avatar.Size = UDim2.new(0, 40, 0, 40)
+    Avatar.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+    Avatar.Image = ""
+    Avatar.Parent = HeaderRow
+
+    local AvatarCorner = Instance.new("UICorner")
+    AvatarCorner.CornerRadius = UDim.new(1, 0)
+    AvatarCorner.Parent = Avatar
+
+    task.spawn(function()
+        local ok, thumb = pcall(function()
+            return Players:GetUserThumbnailAsync(LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100)
+        end)
+        if ok and thumb then
+            Avatar.Image = thumb
+        end
+    end)
 
     local WelcomeTitle = Instance.new("TextLabel")
     WelcomeTitle.Size = UDim2.new(1, -50, 0, 20)
