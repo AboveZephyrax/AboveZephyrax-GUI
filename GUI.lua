@@ -249,23 +249,10 @@ function SimpleGUI:CreateWindow(config)
     HeaderRow.LayoutOrder = 0
     HeaderRow.Parent = WelcomeCard
 
-    local Avatar = Instance.new("Frame")
-    Avatar.Size = UDim2.new(0, 40, 0, 40)
-    Avatar.BackgroundColor3 = Color3.fromRGB(80, 140, 220)
-    Avatar.Parent = HeaderRow
-
-    local AvatarCorner = Instance.new("UICorner")
-    AvatarCorner.CornerRadius = UDim.new(1, 0)
-    AvatarCorner.Parent = Avatar
-
-    local AvatarLabel = Instance.new("TextLabel")
-    AvatarLabel.Size = UDim2.new(1, 0, 1, 0)
-    AvatarLabel.BackgroundTransparency = 1
-    AvatarLabel.Text = string.upper(string.sub(LocalPlayer.Name, 1, 1))
-    AvatarLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    AvatarLabel.Font = Enum.Font.GothamBold
-    AvatarLabel.TextSize = 18
-    AvatarLabel.Parent = Avatar
+    local SimpleGUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/AboveZephyrax/AboveZephyrax-GUI/main/GUI.lua"))()
+print("TYPE:", typeof(SimpleGUI))
+local Window = SimpleGUI:CreateWindow({Name = "Test"})
+print("WINDOW:", typeof(Window))
 
     local WelcomeTitle = Instance.new("TextLabel")
     WelcomeTitle.Size = UDim2.new(1, -50, 0, 20)
