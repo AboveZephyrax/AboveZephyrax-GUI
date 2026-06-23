@@ -11,23 +11,19 @@ local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
+local CoreGui = game:GetService("CoreGui")
 
 function SimpleGUI:CreateWindow(config)
     config = config or {}
 
     local self = setmetatable({}, Window)
 
-    function SimpleGUI:CreateWindow(config)
-    config = config or {}
-
-    local self = setmetatable({}, Window)
-
-    local CoreGui = game:GetService("CoreGui")
     local existingCore = CoreGui:FindFirstChild("SimpleGUI")
     if existingCore then
         existingCore:Destroy()
     end
-    local existingPlayerGui = LocalPlayer:FindFirstChild("PlayerGui") and LocalPlayer.PlayerGui:FindFirstChild("SimpleGUI")
+    local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
+    local existingPlayerGui = playerGui and playerGui:FindFirstChild("SimpleGUI")
     if existingPlayerGui then
         existingPlayerGui:Destroy()
     end
@@ -38,7 +34,6 @@ function SimpleGUI:CreateWindow(config)
     ScreenGui.DisplayOrder = 999
     ScreenGui.IgnoreGuiInset = true
 
-    local CoreGui = game:GetService("CoreGui")
     local mounted = pcall(function()
         ScreenGui.Parent = CoreGui
     end)
@@ -219,52 +214,152 @@ function SimpleGUI:CreateWindow(config)
     WelcomeSection.Visible = true
     WelcomeSection.Parent = ContentArea
 
-    local WelcomeLayout = Instance.new("UIListLayout")
-    WelcomeLayout.Padding = UDim.new(0, 6)
-    WelcomeLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    WelcomeLayout.Parent = WelcomeSection
+    local WelcomeCard = Instance.new("Frame")
+    WelcomeCard.Size = UDim2.new(1, 0, 0, 0)
+    WelcomeCard.AutomaticSize = Enum.AutomaticSize.Y
+    WelcomeCard.BackgroundColor3 = Color3.fromRGB(38, 38, 46)
+    WelcomeCard.BorderSizePixel = 0
+    WelcomeCard.Parent = WelcomeSection
+
+    local WelcomeCardCorner = Instance.new("UICorner")
+    WelcomeCardCorner.CornerRadius = UDim.new(0, 8)
+    WelcomeCardCorner.Parent = WelcomeCard
+
+    local WelcomeStroke = Instance.new("UIStroke")
+    WelcomeStroke.Color = Color3.fromRGB(80, 140, 220)
+    WelcomeStroke.Thickness = 1
+    WelcomeStroke.Transparency = 0.6
+    WelcomeStroke.Parent = WelcomeCard
 
     local WelcomePad = Instance.new("UIPadding")
-    WelcomePad.PaddingTop = UDim.new(0, 10)
-    WelcomePad.PaddingLeft = UDim.new(0, 10)
-    WelcomePad.PaddingRight = UDim.new(0, 10)
-    WelcomePad.Parent = WelcomeSection
+    WelcomePad.PaddingTop = UDim.new(0, 14)
+    WelcomePad.PaddingBottom = UDim.new(0, 14)
+    WelcomePad.PaddingLeft = UDim.new(0, 14)
+    WelcomePad.PaddingRight = UDim.new(0, 14)
+    WelcomePad.Parent = WelcomeCard
+
+    local WelcomeLayout = Instance.new("UIListLayout")
+    WelcomeLayout.Padding = UDim.new(0, 10)
+    WelcomeLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    WelcomeLayout.Parent = WelcomeCard
+
+    local HeaderRow = Instance.new("Frame")
+    HeaderRow.Size = UDim2.new(1, 0, 0, 40)
+    HeaderRow.BackgroundTransparency = 1
+    HeaderRow.LayoutOrder = 0
+    HeaderRow.Parent = WelcomeCard
+
+    local Avatar = Instance.new("Frame")
+    Avatar.Size = UDim2.new(0, 40, 0, 40)
+    Avatar.BackgroundColor3 = Color3.fromRGB(80, 140, 220)
+    Avatar.Parent = HeaderRow
+
+    local AvatarCorner = Instance.new("UICorner")
+    AvatarCorner.CornerRadius = UDim.new(1, 0)
+    AvatarCorner.Parent = Avatar
+
+    local AvatarLabel = Instance.new("TextLabel")
+    AvatarLabel.Size = UDim2.new(1, 0, 1, 0)
+    AvatarLabel.BackgroundTransparency = 1
+    AvatarLabel.Text = string.upper(string.sub(LocalPlayer.Name, 1, 1))
+    AvatarLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    AvatarLabel.Font = Enum.Font.GothamBold
+    AvatarLabel.TextSize = 18
+    AvatarLabel.Parent = Avatar
 
     local WelcomeTitle = Instance.new("TextLabel")
-    WelcomeTitle.Size = UDim2.new(1, 0, 0, 24)
+    WelcomeTitle.Size = UDim2.new(1, -50, 0, 20)
+    WelcomeTitle.Position = UDim2.new(0, 50, 0, 0)
     WelcomeTitle.BackgroundTransparency = 1
     WelcomeTitle.Text = "Welcome, " .. LocalPlayer.Name
     WelcomeTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
     WelcomeTitle.Font = Enum.Font.GothamBold
-    WelcomeTitle.TextSize = 18
+    WelcomeTitle.TextSize = 16
     WelcomeTitle.TextXAlignment = Enum.TextXAlignment.Left
-    WelcomeTitle.LayoutOrder = 0
-    WelcomeTitle.Parent = WelcomeSection
+    WelcomeTitle.Parent = HeaderRow
 
     local placeName = "Unknown"
     pcall(function()
         placeName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
     end)
 
-    local infoLines = {
-        "Game: " .. placeName,
-        "Players Online: " .. tostring(#Players:GetPlayers()),
-        "Account Age: " .. tostring(LocalPlayer.AccountAge) .. " days",
-        "Press " .. (config.Keybind and config.Keybind.Name or "RightControl") .. " to toggle GUI"
-    }
+    local WelcomeSubtitle = Instance.new("TextLabel")
+    WelcomeSubtitle.Size = UDim2.new(1, -50, 0, 16)
+    WelcomeSubtitle.Position = UDim2.new(0, 50, 0, 20)
+    WelcomeSubtitle.BackgroundTransparency = 1
+    WelcomeSubtitle.Text = placeName
+    WelcomeSubtitle.TextColor3 = Color3.fromRGB(150, 150, 160)
+    WelcomeSubtitle.Font = Enum.Font.Gotham
+    WelcomeSubtitle.TextSize = 12
+    WelcomeSubtitle.TextXAlignment = Enum.TextXAlignment.Left
+    WelcomeSubtitle.Parent = HeaderRow
 
-    for i, line in ipairs(infoLines) do
-        local InfoLabel = Instance.new("TextLabel")
-        InfoLabel.Size = UDim2.new(1, 0, 0, 18)
-        InfoLabel.BackgroundTransparency = 1
-        InfoLabel.Text = line
-        InfoLabel.TextColor3 = Color3.fromRGB(180, 180, 190)
-        InfoLabel.Font = Enum.Font.Gotham
-        InfoLabel.TextSize = 13
-        InfoLabel.TextXAlignment = Enum.TextXAlignment.Left
-        InfoLabel.LayoutOrder = i
-        InfoLabel.Parent = WelcomeSection
+    local Divider = Instance.new("Frame")
+    Divider.Size = UDim2.new(1, 0, 0, 1)
+    Divider.BackgroundColor3 = Color3.fromRGB(55, 55, 65)
+    Divider.BorderSizePixel = 0
+    Divider.LayoutOrder = 1
+    Divider.Parent = WelcomeCard
+
+    local StatsRow = Instance.new("Frame")
+    StatsRow.Size = UDim2.new(1, 0, 0, 36)
+    StatsRow.BackgroundTransparency = 1
+    StatsRow.LayoutOrder = 2
+    StatsRow.Parent = WelcomeCard
+
+    local StatsLayout = Instance.new("UIListLayout")
+    StatsLayout.FillDirection = Enum.FillDirection.Horizontal
+    StatsLayout.Padding = UDim.new(0, 8)
+    StatsLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    StatsLayout.Parent = StatsRow
+
+    local function createStat(value, label, order)
+        local StatBox = Instance.new("Frame")
+        StatBox.Size = UDim2.new(0.5, -4, 1, 0)
+        StatBox.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+        StatBox.LayoutOrder = order
+        StatBox.Parent = StatsRow
+
+        local StatCorner = Instance.new("UICorner")
+        StatCorner.CornerRadius = UDim.new(0, 6)
+        StatCorner.Parent = StatBox
+
+        local ValueLabel = Instance.new("TextLabel")
+        ValueLabel.Size = UDim2.new(1, 0, 0, 18)
+        ValueLabel.Position = UDim2.new(0, 0, 0, 2)
+        ValueLabel.BackgroundTransparency = 1
+        ValueLabel.Text = value
+        ValueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        ValueLabel.Font = Enum.Font.GothamBold
+        ValueLabel.TextSize = 14
+        ValueLabel.Parent = StatBox
+
+        local CaptionLabel = Instance.new("TextLabel")
+        CaptionLabel.Size = UDim2.new(1, 0, 0, 14)
+        CaptionLabel.Position = UDim2.new(0, 0, 0, 20)
+        CaptionLabel.BackgroundTransparency = 1
+        CaptionLabel.Text = label
+        CaptionLabel.TextColor3 = Color3.fromRGB(150, 150, 160)
+        CaptionLabel.Font = Enum.Font.Gotham
+        CaptionLabel.TextSize = 11
+        CaptionLabel.Parent = StatBox
+
+        return StatBox
     end
+
+    createStat(tostring(#Players:GetPlayers()), "Players Online", 0)
+    createStat(tostring(LocalPlayer.AccountAge) .. "d", "Account Age", 1)
+
+    local KeybindLabel = Instance.new("TextLabel")
+    KeybindLabel.Size = UDim2.new(1, 0, 0, 16)
+    KeybindLabel.BackgroundTransparency = 1
+    KeybindLabel.Text = "Press " .. keybind.Name .. " to toggle this menu"
+    KeybindLabel.TextColor3 = Color3.fromRGB(130, 130, 140)
+    KeybindLabel.Font = Enum.Font.Gotham
+    KeybindLabel.TextSize = 12
+    KeybindLabel.TextXAlignment = Enum.TextXAlignment.Left
+    KeybindLabel.LayoutOrder = 3
+    KeybindLabel.Parent = WelcomeCard
 
     self.WelcomeSection = WelcomeSection
     self.ScreenGui = ScreenGui
