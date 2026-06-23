@@ -10,6 +10,7 @@ Tab.__index = Tab
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 
 function SimpleGUI:CreateWindow(config)
     config = config or {}
@@ -30,9 +31,16 @@ function SimpleGUI:CreateWindow(config)
         ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
     end
 
+    local keybind = config.Keybind or Enum.KeyCode.RightControl
+    UserInputService.InputBegan:Connect(function(input)
+        if input.KeyCode == keybind then
+            ScreenGui.Enabled = not ScreenGui.Enabled
+        end
+    end)
+
     local Main = Instance.new("Frame")
-    Main.Size = UDim2.new(0, 260, 0, 360)
-    Main.Position = UDim2.new(0.5, -130, 0.5, -180)
+    Main.Size = UDim2.new(0, 520, 0, 320)
+    Main.Position = UDim2.new(0.5, -260, 0.5, -160)
     Main.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
     Main.BorderSizePixel = 0
     Main.Active = true
@@ -139,113 +147,241 @@ function SimpleGUI:CreateWindow(config)
     MinBtn.MouseButton1Click:Connect(function()
         minimized = not minimized
         if minimized then
-            Main.Size = UDim2.new(0, 260, 0, 32)
+            Main.Size = UDim2.new(0, 520, 0, 32)
             Body.Visible = false
             MinBtn.Text = "+"
         else
-            Main.Size = UDim2.new(0, 260, 0, 360)
+            Main.Size = UDim2.new(0, 520, 0, 320)
             Body.Visible = true
             MinBtn.Text = "-"
         end
     end)
 
-    local MainScroll = Instance.new("ScrollingFrame")
-    MainScroll.Size = UDim2.new(1, -10, 1, -10)
-    MainScroll.Position = UDim2.new(0, 5, 0, 5)
-    MainScroll.BackgroundTransparency = 1
-    MainScroll.BorderSizePixel = 0
-    MainScroll.ScrollBarThickness = 4
-    MainScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
-    MainScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
-    MainScroll.Parent = Body
+    local Sidebar = Instance.new("ScrollingFrame")
+    Sidebar.Size = UDim2.new(0, 130, 1, -10)
+    Sidebar.Position = UDim2.new(0, 5, 0, 5)
+    Sidebar.BackgroundColor3 = Color3.fromRGB(24, 24, 28)
+    Sidebar.BorderSizePixel = 0
+    Sidebar.ScrollBarThickness = 3
+    Sidebar.CanvasSize = UDim2.new(0, 0, 0, 0)
+    Sidebar.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    Sidebar.Parent = Body
 
-    local MainLayout = Instance.new("UIListLayout")
-    MainLayout.Padding = UDim.new(0, 8)
-    MainLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    MainLayout.Parent = MainScroll
+    local SidebarCorner = Instance.new("UICorner")
+    SidebarCorner.CornerRadius = UDim.new(0, 6)
+    SidebarCorner.Parent = Sidebar
+
+    local SidebarLayout = Instance.new("UIListLayout")
+    SidebarLayout.Padding = UDim.new(0, 4)
+    SidebarLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    SidebarLayout.Parent = Sidebar
+
+    local SidebarPad = Instance.new("UIPadding")
+    SidebarPad.PaddingTop = UDim.new(0, 4)
+    SidebarPad.PaddingBottom = UDim.new(0, 4)
+    SidebarPad.PaddingLeft = UDim.new(0, 4)
+    SidebarPad.PaddingRight = UDim.new(0, 4)
+    SidebarPad.Parent = Sidebar
+
+    local ContentArea = Instance.new("ScrollingFrame")
+    ContentArea.Size = UDim2.new(1, -145, 1, -10)
+    ContentArea.Position = UDim2.new(0, 140, 0, 5)
+    ContentArea.BackgroundTransparency = 1
+    ContentArea.BorderSizePixel = 0
+    ContentArea.ScrollBarThickness = 4
+    ContentArea.CanvasSize = UDim2.new(0, 0, 0, 0)
+    ContentArea.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    ContentArea.Parent = Body
+
+    local ContentLayout = Instance.new("UIListLayout")
+    ContentLayout.Padding = UDim.new(0, 6)
+    ContentLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    ContentLayout.Parent = ContentArea
 
     self.ScreenGui = ScreenGui
     self.Main = Main
     self.Body = Body
-    self.MainScroll = MainScroll
+    self.Sidebar = Sidebar
+    self.ContentArea = ContentArea
     self.Tabs = {}
 
     return self
 end
 
+function Window:Notify(config)
+    config = config or {}
+    local title = config.Title or "Notification"
+    local content = config.Content or ""
+    local duration = config.Duration or 3
+
+    if not self.NotifHolder then
+        local Holder = Instance.new("Frame")
+        Holder.Size = UDim2.new(0, 260, 1, -20)
+        Holder.Position = UDim2.new(1, -270, 0, 10)
+        Holder.BackgroundTransparency = 1
+        Holder.Parent = self.ScreenGui
+
+        local Layout = Instance.new("UIListLayout")
+        Layout.Padding = UDim.new(0, 8)
+        Layout.VerticalAlignment = Enum.VerticalAlignment.Bottom
+        Layout.SortOrder = Enum.SortOrder.LayoutOrder
+        Layout.Parent = Holder
+
+        self.NotifHolder = Holder
+    end
+
+    local Box = Instance.new("Frame")
+    Box.Size = UDim2.new(1, 0, 0, 0)
+    Box.AutomaticSize = Enum.AutomaticSize.Y
+    Box.BackgroundColor3 = Color3.fromRGB(40, 40, 48)
+    Box.BackgroundTransparency = 1
+    Box.LayoutOrder = os.clock()
+    Box.Parent = self.NotifHolder
+
+    local BoxCorner = Instance.new("UICorner")
+    BoxCorner.CornerRadius = UDim.new(0, 8)
+    BoxCorner.Parent = Box
+
+    local BoxStroke = Instance.new("UIStroke")
+    BoxStroke.Color = Color3.fromRGB(80, 140, 220)
+    BoxStroke.Thickness = 1
+    BoxStroke.Transparency = 1
+    BoxStroke.Parent = Box
+
+    local Padding = Instance.new("UIPadding")
+    Padding.PaddingTop = UDim.new(0, 10)
+    Padding.PaddingBottom = UDim.new(0, 10)
+    Padding.PaddingLeft = UDim.new(0, 12)
+    Padding.PaddingRight = UDim.new(0, 12)
+    Padding.Parent = Box
+
+    local Layout2 = Instance.new("UIListLayout")
+    Layout2.Padding = UDim.new(0, 2)
+    Layout2.SortOrder = Enum.SortOrder.LayoutOrder
+    Layout2.Parent = Box
+
+    local TitleLabel = Instance.new("TextLabel")
+    TitleLabel.Size = UDim2.new(1, 0, 0, 18)
+    TitleLabel.BackgroundTransparency = 1
+    TitleLabel.Text = title
+    TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TitleLabel.Font = Enum.Font.GothamBold
+    TitleLabel.TextSize = 13
+    TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    TitleLabel.TextTransparency = 1
+    TitleLabel.LayoutOrder = 0
+    TitleLabel.Parent = Box
+
+    local ContentLabel = Instance.new("TextLabel")
+    ContentLabel.Size = UDim2.new(1, 0, 0, 0)
+    ContentLabel.AutomaticSize = Enum.AutomaticSize.Y
+    ContentLabel.BackgroundTransparency = 1
+    ContentLabel.Text = content
+    ContentLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+    ContentLabel.Font = Enum.Font.Gotham
+    ContentLabel.TextSize = 12
+    ContentLabel.TextXAlignment = Enum.TextXAlignment.Left
+    ContentLabel.TextWrapped = true
+    ContentLabel.TextTransparency = 1
+    ContentLabel.LayoutOrder = 1
+    ContentLabel.Parent = Box
+
+    TweenService:Create(Box, TweenInfo.new(0.25), {BackgroundTransparency = 0}):Play()
+    TweenService:Create(BoxStroke, TweenInfo.new(0.25), {Transparency = 0}):Play()
+    TweenService:Create(TitleLabel, TweenInfo.new(0.25), {TextTransparency = 0}):Play()
+    TweenService:Create(ContentLabel, TweenInfo.new(0.25), {TextTransparency = 0}):Play()
+
+    task.delay(duration, function()
+        local fadeTime = 0.3
+        TweenService:Create(Box, TweenInfo.new(fadeTime), {BackgroundTransparency = 1}):Play()
+        TweenService:Create(BoxStroke, TweenInfo.new(fadeTime), {Transparency = 1}):Play()
+        TweenService:Create(TitleLabel, TweenInfo.new(fadeTime), {TextTransparency = 1}):Play()
+        TweenService:Create(ContentLabel, TweenInfo.new(fadeTime), {TextTransparency = 1}):Play()
+        task.wait(fadeTime)
+        Box:Destroy()
+    end)
+end
+
 function Window:CreateTab(name)
     local tab = setmetatable({}, Tab)
 
-    local Section = Instance.new("Frame")
-    Section.Size = UDim2.new(1, 0, 0, 0)
-    Section.AutomaticSize = Enum.AutomaticSize.Y
-    Section.BackgroundTransparency = 1
-    Section.LayoutOrder = #self.Tabs
-    Section.Parent = self.MainScroll
+    local TabBtn = Instance.new("TextButton")
+    TabBtn.Size = UDim2.new(1, 0, 0, 30)
+    TabBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+    TabBtn.Text = name
+    TabBtn.TextColor3 = Color3.fromRGB(220, 220, 220)
+    TabBtn.Font = Enum.Font.GothamBold
+    TabBtn.TextSize = 12
+    TabBtn.AutoButtonColor = false
+    TabBtn.LayoutOrder = #self.Tabs
+    TabBtn.Parent = self.Sidebar
 
-    local SectionLayout = Instance.new("UIListLayout")
-    SectionLayout.Padding = UDim.new(0, 6)
-    SectionLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    SectionLayout.Parent = Section
+    local TabBtnCorner = Instance.new("UICorner")
+    TabBtnCorner.CornerRadius = UDim.new(0, 6)
+    TabBtnCorner.Parent = TabBtn
 
-    local Header = Instance.new("TextButton")
-    Header.Size = UDim2.new(1, 0, 0, 30)
-    Header.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-    Header.Text = ""
-    Header.AutoButtonColor = false
+    local Container = Instance.new("Frame")
+    Container.Size = UDim2.new(1, 0, 0, 0)
+    Container.AutomaticSize = Enum.AutomaticSize.Y
+    Container.BackgroundTransparency = 1
+    Container.Visible = (#self.Tabs == 0)
+    Container.LayoutOrder = #self.Tabs
+    Container.Parent = self.ContentArea
+
+    local Layout = Instance.new("UIListLayout")
+    Layout.Padding = UDim.new(0, 6)
+    Layout.SortOrder = Enum.SortOrder.LayoutOrder
+    Layout.Parent = Container
+
+    local Header = Instance.new("TextLabel")
+    Header.Size = UDim2.new(1, 0, 0, 24)
+    Header.BackgroundTransparency = 1
+    Header.Text = name
+    Header.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Header.Font = Enum.Font.GothamBold
+    Header.TextSize = 15
+    Header.TextXAlignment = Enum.TextXAlignment.Left
     Header.LayoutOrder = 0
-    Header.Parent = Section
+    Header.Parent = Container
 
-    local HeaderCorner = Instance.new("UICorner")
-    HeaderCorner.CornerRadius = UDim.new(0, 6)
-    HeaderCorner.Parent = Header
+    local ItemsHolder = Instance.new("Frame")
+    ItemsHolder.Size = UDim2.new(1, 0, 0, 0)
+    ItemsHolder.AutomaticSize = Enum.AutomaticSize.Y
+    ItemsHolder.BackgroundTransparency = 1
+    ItemsHolder.LayoutOrder = 1
+    ItemsHolder.Parent = Container
 
-    local HeaderLabel = Instance.new("TextLabel")
-    HeaderLabel.Size = UDim2.new(1, -30, 1, 0)
-    HeaderLabel.Position = UDim2.new(0, 10, 0, 0)
-    HeaderLabel.BackgroundTransparency = 1
-    HeaderLabel.Text = name
-    HeaderLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    HeaderLabel.Font = Enum.Font.GothamBold
-    HeaderLabel.TextSize = 13
-    HeaderLabel.TextXAlignment = Enum.TextXAlignment.Left
-    HeaderLabel.Parent = Header
+    local ItemsLayout = Instance.new("UIListLayout")
+    ItemsLayout.Padding = UDim.new(0, 6)
+    ItemsLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    ItemsLayout.Parent = ItemsHolder
 
-    local Arrow = Instance.new("TextLabel")
-    Arrow.Size = UDim2.new(0, 20, 1, 0)
-    Arrow.Position = UDim2.new(1, -24, 0, 0)
-    Arrow.BackgroundTransparency = 1
-    Arrow.Text = "-"
-    Arrow.TextColor3 = Color3.fromRGB(220, 220, 220)
-    Arrow.Font = Enum.Font.GothamBold
-    Arrow.TextSize = 14
-    Arrow.Parent = Header
-
-    local ContentHolder = Instance.new("Frame")
-    ContentHolder.Size = UDim2.new(1, 0, 0, 0)
-    ContentHolder.AutomaticSize = Enum.AutomaticSize.Y
-    ContentHolder.BackgroundTransparency = 1
-    ContentHolder.LayoutOrder = 1
-    ContentHolder.Parent = Section
-
-    local ContentLayout = Instance.new("UIListLayout")
-    ContentLayout.Padding = UDim.new(0, 6)
-    ContentLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    ContentLayout.Parent = ContentHolder
-
-    local expanded = true
-    Header.MouseButton1Click:Connect(function()
-        expanded = not expanded
-        ContentHolder.Visible = expanded
-        Arrow.Text = expanded and "-" or "+"
-    end)
-
-    tab.Section = Section
-    tab.Header = Header
-    tab.Container = ContentHolder
+    tab.Container = ItemsHolder
+    tab.Section = Container
+    tab.Button = TabBtn
     tab.Window = self
 
     table.insert(self.Tabs, tab)
+
+    local function refreshTabColors()
+        for _, t in ipairs(self.Tabs) do
+            if t.Section.Visible then
+                t.Button.BackgroundColor3 = Color3.fromRGB(75, 90, 130)
+            else
+                t.Button.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+            end
+        end
+    end
+
+    TabBtn.MouseButton1Click:Connect(function()
+        for _, t in ipairs(self.Tabs) do
+            t.Section.Visible = false
+        end
+        Container.Visible = true
+        refreshTabColors()
+    end)
+
+    refreshTabColors()
 
     return tab
 end
@@ -295,6 +431,12 @@ end
 function Tab:CreateToggle(config)
     config = config or {}
     local state = config.CurrentValue or false
+    if config.Flag and self.Window.SavedConfig[config.Flag] ~= nil then
+        state = self.Window.SavedConfig[config.Flag]
+    end
+    if config.Flag then
+        self.Window.Flags[config.Flag] = state
+    end
 
     local Holder = Instance.new("Frame")
     Holder.Size = UDim2.new(1, 0, 0, 32)
@@ -346,6 +488,9 @@ function Tab:CreateToggle(config)
         state = not state
         Switch.BackgroundColor3 = state and Color3.fromRGB(80, 170, 100) or Color3.fromRGB(90, 90, 100)
         Knob.Position = state and UDim2.new(1, -16, 0.5, -7) or UDim2.new(0, 2, 0.5, -7)
+        if config.Flag then
+            self.Window:SaveFlag(config.Flag, state)
+        end
         if config.Callback then config.Callback(state) end
     end)
 
@@ -357,6 +502,12 @@ function Tab:CreateSlider(config)
     local range = config.Range or {0, 100}
     local min, max = range[1], range[2]
     local value = config.CurrentValue or min
+    if config.Flag and self.Window.SavedConfig[config.Flag] ~= nil then
+        value = self.Window.SavedConfig[config.Flag]
+    end
+    if config.Flag then
+        self.Window.Flags[config.Flag] = value
+    end
     local dragging = false
 
     local Holder = Instance.new("Frame")
@@ -403,6 +554,9 @@ function Tab:CreateSlider(config)
         value = math.floor(min + (max - min) * rel)
         Fill.Size = UDim2.new(rel, 0, 1, 0)
         Label.Text = (config.Name or "Slider") .. ": " .. tostring(value)
+        if config.Flag then
+            self.Window:SaveFlag(config.Flag, value)
+        end
         if config.Callback then config.Callback(value) end
     end
 
@@ -430,6 +584,13 @@ end
 
 function Tab:CreateInput(config)
     config = config or {}
+    local currentValue = config.CurrentValue or ""
+    if config.Flag and self.Window.SavedConfig[config.Flag] ~= nil then
+        currentValue = self.Window.SavedConfig[config.Flag]
+    end
+    if config.Flag then
+        self.Window.Flags[config.Flag] = currentValue
+    end
 
     local Holder = Instance.new("Frame")
     Holder.Size = UDim2.new(1, 0, 0, 56)
@@ -456,7 +617,7 @@ function Tab:CreateInput(config)
     Input.Position = UDim2.new(0, 10, 0, 22)
     Input.BackgroundColor3 = Color3.fromRGB(40, 40, 48)
     Input.PlaceholderText = config.PlaceholderText or ""
-    Input.Text = config.CurrentValue or ""
+    Input.Text = currentValue
     Input.TextColor3 = Color3.fromRGB(255, 255, 255)
     Input.PlaceholderColor3 = Color3.fromRGB(140, 140, 150)
     Input.Font = Enum.Font.Gotham
@@ -469,6 +630,9 @@ function Tab:CreateInput(config)
     InputCorner.Parent = Input
 
     Input.FocusLost:Connect(function(enterPressed)
+        if config.Flag then
+            self.Window:SaveFlag(config.Flag, Input.Text)
+        end
         if config.Callback then config.Callback(Input.Text, enterPressed) end
     end)
 
@@ -479,6 +643,12 @@ function Tab:CreateDropdown(config)
     config = config or {}
     local options = config.Options or {}
     local selected = config.CurrentOption or options[1]
+    if config.Flag and self.Window.SavedConfig[config.Flag] ~= nil then
+        selected = self.Window.SavedConfig[config.Flag]
+    end
+    if config.Flag then
+        self.Window.Flags[config.Flag] = selected
+    end
     local open = false
 
     local Holder = Instance.new("Frame")
@@ -535,6 +705,9 @@ function Tab:CreateDropdown(config)
             List.Visible = false
             open = false
             Holder.Size = UDim2.new(1, 0, 0, 32)
+            if config.Flag then
+                self.Window:SaveFlag(config.Flag, selected)
+            end
             if config.Callback then config.Callback(selected) end
         end)
     end
@@ -555,6 +728,13 @@ end
 function Tab:CreateColorPicker(config)
     config = config or {}
     local color = config.Color or Color3.fromRGB(255, 0, 0)
+    if config.Flag and self.Window.SavedConfig[config.Flag] ~= nil then
+        local c = self.Window.SavedConfig[config.Flag]
+        color = Color3.new(c.R, c.G, c.B)
+    end
+    if config.Flag then
+        self.Window.Flags[config.Flag] = {R = color.R, G = color.G, B = color.B}
+    end
     local hue = select(1, color:ToHSV())
 
     local Holder = Instance.new("Frame")
@@ -647,6 +827,9 @@ function Tab:CreateColorPicker(config)
         Knob.Position = UDim2.new(rel, 0, 0.5, 0)
         color = Color3.fromHSV(rel, 1, 1)
         Swatch.BackgroundColor3 = color
+        if config.Flag then
+            self.Window:SaveFlag(config.Flag, {R = color.R, G = color.G, B = color.B})
+        end
         if config.Callback then config.Callback(color) end
     end
 
