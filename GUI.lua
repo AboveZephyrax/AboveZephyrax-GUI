@@ -17,6 +17,21 @@ function SimpleGUI:CreateWindow(config)
 
     local self = setmetatable({}, Window)
 
+    function SimpleGUI:CreateWindow(config)
+    config = config or {}
+
+    local self = setmetatable({}, Window)
+
+    local CoreGui = game:GetService("CoreGui")
+    local existingCore = CoreGui:FindFirstChild("SimpleGUI")
+    if existingCore then
+        existingCore:Destroy()
+    end
+    local existingPlayerGui = LocalPlayer:FindFirstChild("PlayerGui") and LocalPlayer.PlayerGui:FindFirstChild("SimpleGUI")
+    if existingPlayerGui then
+        existingPlayerGui:Destroy()
+    end
+
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "SimpleGUI"
     ScreenGui.ResetOnSpawn = false
