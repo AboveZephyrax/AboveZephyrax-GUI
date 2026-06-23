@@ -500,9 +500,11 @@ function Tab:CreateToggle(config)
     KnobCorner.Parent = Knob
 
     local ClickArea = Instance.new("TextButton")
-    ClickArea.Size = UDim2.new(1, 0, 1, 0)
+    ClickArea.Size = UDim2.new(0, 36, 0, 18)
+    ClickArea.Position = UDim2.new(1, -44, 0.5, -9)
     ClickArea.BackgroundTransparency = 1
     ClickArea.Text = ""
+    ClickArea.ZIndex = 2
     ClickArea.Parent = Holder
 
     ClickArea.MouseButton1Click:Connect(function()
